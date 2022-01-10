@@ -1,0 +1,43 @@
+<head>
+  <title>Hello</title>
+</head>
+<body>
+  <div>this is main thread</div>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/service-worker.js").then(
+          function (registration) {
+            // Registration was successful
+            console.log(
+              "ServiceWorker registration successful with scope: ",
+              registration.scope
+            );
+            const worker = new Worker("./worker.js");
+          },
+          function (err) {
+            // registration failed :(
+            console.log("ServiceWorker registration failed: ", err);
+          }
+        );
+      });
+    }
+
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      console.log("receive message from service worker", event.data);
+      const { requestId, message, params } = event.data;
+      if (message === "getWindowTitle") {
+        const title = getWindowTitle();
+        navigator.serviceWorker.controller.postMessage({
+          requestId,
+          result: title,
+        });
+        return;
+      }
+    });
+
+    function getWindowTitle() {
+      return document.title;
+    }
+  </script>
+</body>
